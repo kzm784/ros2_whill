@@ -27,8 +27,8 @@ ROS2 package for WHILL Model CR
 
 
 ## Requirements
-- Ubuntu 18.04 (Windows & Mac OS support is currently under development)
-- ROS2 Crystal
+- Ubuntu 20.04 (Windows & Mac OS support is currently under development)
+- ROS2 galactic
 - [ros2_whill_interfaces](https://github.com/WHILL/ros2_whill_interfaces)
 
 ## Build
