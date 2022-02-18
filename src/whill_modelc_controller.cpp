@@ -192,7 +192,6 @@ int main(int argc, char **argv)
     // ROS setup
     rclcpp::init(argc, argv);
     node = rclcpp::Node::make_shared("whill_modelc_controller");
-    
     std::string serialport = "/dev/ttyUSB0";
     node->get_parameter("serialport", serialport);
     RCLCPP_INFO(node->get_logger(), "=========================");
@@ -206,7 +205,7 @@ int main(int argc, char **argv)
     auto set_battery_voltage_out = node->create_service<ros2_whill_interfaces::srv::SetBatteryVoltageOut>("/whill/set_battery_voltage_out_srv", set_battery_voltage_out_srv);
 
     // Subscribers
-    auto whill_setjoy_sub = node->create_subscription<sensor_msgs::msg::Joy>("/whill/controller/joy", whillSetJoyMsgCallback, rmw_qos_profile_sensor_data);
+    auto whill_setjoy_sub = node->create_subscription<sensor_msgs::msg::Joy>("/whill/controller/joy",10,std::bind(whillSetJoyMsgCallback, std::placeholders::_1));
 
     initializeComWHILL(&whill_fd, serialport);
     rclcpp::spin(node);
