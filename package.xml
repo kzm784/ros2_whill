@@ -19,6 +19,8 @@
   <depend>rclcpp</depend>
   <depend>rmw_implementation</depend>
   <depend>rclpy</depend>
+  <depend>xacro</depend>
+  <depend>robot_state_publisher</depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>ros2_whill_interfaces</build_depend>
   <build_export_depend>std_msgs</build_export_depend>

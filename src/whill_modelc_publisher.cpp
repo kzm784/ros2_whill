@@ -399,14 +399,14 @@ int main(int argc, char **argv)
 					odom_trans.header.stamp.sec = RCL_NS_TO_S(now);
 					odom_trans.header.stamp.nanosec = now - RCL_S_TO_NS(odom_trans.header.stamp.sec);
 					odom_trans.header.frame_id = "odom";
-					odom_trans.child_frame_id = "base_footprint";
+					odom_trans.child_frame_id = "base_link";
 					odom_broadcaster_.sendTransform(odom_trans);
 
 					odom_msg = odom.getROSOdometry();
 					odom_msg.header.stamp.sec = RCL_NS_TO_S(now);
 					odom_msg.header.stamp.nanosec = now - RCL_S_TO_NS(odom_msg.header.stamp.sec);
 					odom_msg.header.frame_id = "odom";
-					odom_msg.child_frame_id = "base_footprint";
+					odom_msg.child_frame_id = "base_link";
 					whill_modelc_odom->publish(odom_msg);
 				}
 			}

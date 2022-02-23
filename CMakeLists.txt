@@ -18,6 +18,7 @@ find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(ros2_whill_interfaces REQUIRED)
+find_package(xacro REQUIRED)
 
 ament_export_dependencies(rosidl_default_runtime)
 
@@ -77,12 +78,19 @@ target_link_libraries(whill_modelc_controller
 	${sensor_msgs_LIBRARIES}
 	${ros2_whill_interfaces_LIBRARIES}
 )
+xacro_add_files(
+  xacro/modelc.xacro
+	INSTALL DESTINATION xacro
+)
 
 install(TARGETS whill_modelc_publisher RUNTIME DESTINATION lib/${PROJECT_NAME})
 install(TARGETS whill_modelc_controller RUNTIME DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY params launch
   DESTINATION share/${PROJECT_NAME}
+)
+install(DIRECTORY xacro/
+  DESTINATION share/${PROJECT_NAME}/xacro
 )
 
 ament_export_dependencies(rosidl_default_runtime)
