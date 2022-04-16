@@ -32,6 +32,7 @@ Thus, it is no longer the recommended style for ROS 2.
 
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/joy.hpp"
+#include "geometry_msgs/msg/twist.hpp"
 
 #include "whill_modelc/com_whill.h"
 #include "ros2_whill_interfaces/srv/set_speed_profile.hpp"
@@ -186,6 +187,10 @@ void whillSetJoyMsgCallback(const sensor_msgs::msg::Joy::SharedPtr joy)
     sendJoystick(whill_fd, joy_front, joy_side);
 }
 
+void whillSetCmdvelCallBack(const geometry_msgs::msg::Twist::SharedPtr cmd_vel)
+{
+    setSpeed(whill_fd,cmd_vel->linear.x, cmd_vel->angular.z);
+}
 
 int main(int argc, char **argv)
 {
@@ -206,6 +211,7 @@ int main(int argc, char **argv)
 
     // Subscribers
     auto whill_setjoy_sub = node->create_subscription<sensor_msgs::msg::Joy>("/whill/controller/joy",10,std::bind(whillSetJoyMsgCallback, std::placeholders::_1));
+    auto whill_setcmdvel_sub = node->create_subscription<geometry_msgs::msg::Twist>("/whill/controller/cmd_vel",10,std::bind(whillSetCmdvelCallBack, std::placeholders::_1));
 
     initializeComWHILL(&whill_fd, serialport);
     rclcpp::spin(node);

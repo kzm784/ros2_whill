@@ -36,6 +36,7 @@ SOFTWARE.
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <fcntl.h>
+#include <iostream>
 #include "./uart.h"
 
 //#include "ros/ros.h"
@@ -48,17 +49,19 @@ enum{
      SET_POWER,
      //SET_SEAT_MOVE, 		// removed on Model C
      SET_JOYSTICK,
+     SET_SPEED_PROFILE,
      //SET_FORWARD, 		// removed on Model C
      //SET_REVERSE, 		// removed on Model C
      //SET_TURN, 		// removed on Model C
-     //SET_SPEED_DOWN, 		// removed on Model C
-     SET_SPEED_PROFILE, 	// added on Model C
-     SET_BATTERY_VOLTAGE_OUT, 	// added on Model C
+     //SET_SPEED_DOWN,
+     reserve1,
+     reserve2, 		// added on Model C
+     SET_BATTERY_VOLTAGE_OUT,
+     SET_SPEED,	// added on Model CR
 };
 
 #define USER_CTRL_DISABLE (0)
 #define USER_CTRL_ENABLE (1)
-#define ENABLE (1)
 
 int initializeComWHILL(int *fd,std::string port)
 {
@@ -219,7 +222,7 @@ int sendPowerOff(int fd)
      return sendWHILLCmd(fd, cmd, num_cmd);
 }     
 
-/* removed on Model C
+/*
 int sendSetForward(int fd, char max_speed, char accel, char deccel)
 {
      const int num_cmd = 4;
@@ -291,5 +294,30 @@ int sendSetBatteryOut(int fd, char battery_out)
      cmd[1] = battery_out;
 
      return sendWHILLCmd(fd, cmd, num_cmd);
+}
+
+int setSpeed(int fd,float linear,float angular)
+{
+     //linear velocity x, angular.z velocity y
+     int16_t x=0;
+     int16_t y=0;
+     y=(linear *3.6f)/0.004f;
+
+     const float tread_width =0.248;
+     float velocity =tread_width*angular;
+     x =-velocity *3.6f/0.004f*2.0f;
+
+     const int num_cmd = 6;
+     char cmd[num_cmd];
+     cmd[0]=SET_SPEED;
+     cmd[1]=0;
+     cmd[2]=(uint8_t)((y >> 8) & 0xff);
+     cmd[3]=(uint8_t)((y >> 0) & 0xff);
+     cmd[4]=(uint8_t)((x >> 8) & 0xff);
+     cmd[5]=(uint8_t)((x >> 0) & 0xff);
+
+     return sendWHILLCmd(fd, cmd, num_cmd);
+
+     //printf("linear:%f, angular:%f, x:%d, z:%d\n",linear,angular,x,z);
 }
 

@@ -177,7 +177,6 @@ int main(int argc, char **argv)
 	// Node Param
 	if(send_interval < 10){
 	RCLCPP_WARN(node->get_logger(), "Too short interval. Set interval > 10");
-		//nh.setParam("/whill_modelc_publisher/send_interval", 10);
 		send_interval = 10;
 	}
 	RCLCPP_INFO(node->get_logger(), "param: send_interval=%d", send_interval);

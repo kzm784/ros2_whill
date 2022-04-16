@@ -75,6 +75,7 @@ target_link_libraries(whill_modelc_controller
 	${rclcpp_LIBRARIES}
 	${rmw_implementation_LIBRARIES}
 	${std_msgs_LIBRARIES}
+	${geometry_msgs_LIBRARIES}
 	${sensor_msgs_LIBRARIES}
 	${ros2_whill_interfaces_LIBRARIES}
 )
@@ -86,7 +87,7 @@ xacro_add_files(
 install(TARGETS whill_modelc_publisher RUNTIME DESTINATION lib/${PROJECT_NAME})
 install(TARGETS whill_modelc_controller RUNTIME DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY params launch
+install(DIRECTORY params launch config
   DESTINATION share/${PROJECT_NAME}
 )
 install(DIRECTORY xacro/
