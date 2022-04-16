@@ -10,6 +10,10 @@ ROS2 package for WHILL Model CR
 #### /whill/controller/joy [(sensor_msgs/Joy)](http://docs.ros.org/api/sensor_msgs/html/msg/Joy.html)
 - Virtual WHILL joystick input. You can controll WHILL via this topic.
 
+#### /whill/controller/cmd_vel[(geometry_msgs/Twist)](http://docs.ros.org/en/api/geometry_msgs/html/msg/Twist.html)
+cmc_vel input. You can controll WHILL via this topic.
+This command is only available Model CR firmware updatedd after 2019.12. If you want to use this cmd_vel, please update firmware of Model CR by contact to sales of WHILL.
+
 
 ### Published Topics
 
@@ -38,16 +42,13 @@ cd ~/<your_ros2_ws>/src
 git clone https://github.com/WHILL/ros2_whill_interfaces.git
 git clone https://github.com/WHILL/ros2_whill.git
 cd ~/<your_ros2_ws>
-colcon build --packages-up-to ros2_whill
-source install/local_setup.bash
+colcon build 
+source install/setup.bash
 
 ```
 
 
-### Build only ros_whill package
-```sh
-colcon build --packages-select ros2_whill
-```
+
 
 ## SerialPort Settings
 
