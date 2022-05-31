@@ -31,7 +31,7 @@ This command is only available Model CR firmware updatedd after 2019.12. If you 
 
 
 ## Requirements
-- Ubuntu 20.04 (Windows & Mac OS support is currently under development)
+- Ubuntu 20.04 
 - ROS2 galactic
 - [ros2_whill_interfaces](https://github.com/WHILL/ros2_whill_interfaces)
 
