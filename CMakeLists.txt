@@ -22,17 +22,20 @@ find_package(xacro REQUIRED)
 
 ament_export_dependencies(rosidl_default_runtime)
 
+
 include_directories(
-	${rclcpp_INCLUDE_DIRS}
-	${rmw_implementation_INCLUDE_DIRS}
-	${std_srvs_INCLUDE_DIRS}
-	${std_msgs_INCLUDE_DIRS}
-	${sensor_msgs_INCLUDE_DIRS}
-	${nav_msgs_INCLUDE_DIRS}
-	${geometry_msgs_INCLUDE_DIRS}
-	${tf2_geometry_msgs_INCLUDE_DIRS}
-	${tf2_ros_INCLUDE_DIRS}
-	${ros2_whill_interfaces_INCLUDE_DIRS}
+	SYSTEM
+		include
+		${rclcpp_INCLUDE_DIRS}
+		${rmw_implementation_INCLUDE_DIRS}
+		${std_srvs_INCLUDE_DIRS}
+		${std_msgs_INCLUDE_DIRS}
+		${sensor_msgs_INCLUDE_DIRS}
+		${nav_msgs_INCLUDE_DIRS}
+		${geometry_msgs_INCLUDE_DIRS}
+		${tf2_geometry_msgs_INCLUDE_DIRS}
+		${tf2_ros_INCLUDE_DIRS}
+		${ros2_whill_interfaces_INCLUDE_DIRS}
 )
 
 add_executable(whill_modelc_publisher
@@ -45,6 +48,7 @@ add_executable(whill_modelc_publisher
 ament_target_dependencies(whill_modelc_publisher
 	"rclcpp"
 	"ros2_whill_interfaces"
+	"tf2_geometry_msgs"
 )
 
 add_executable(whill_modelc_controller 
@@ -87,7 +91,7 @@ xacro_add_files(
 install(TARGETS whill_modelc_publisher RUNTIME DESTINATION lib/${PROJECT_NAME})
 install(TARGETS whill_modelc_controller RUNTIME DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY params launch config
+install(DIRECTORY params launch
   DESTINATION share/${PROJECT_NAME}
 )
 install(DIRECTORY xacro/
