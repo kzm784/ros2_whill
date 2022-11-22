@@ -122,3 +122,17 @@ ros2 service call /whill/set_power_srv ros2_whill_interfaces/SetPower '{p0: 1}'
 ```sh
 ros2 service call /whill/set_power_srv ros2_whill_interfaces/SetPower'{p0: 0}'
 ```
+
+### problem
+'''sh
+ros2 topic echo /whill/states/batttery_state
+'''
+don't show the topic infomation,
+please add 
+'''sh
+export PYTHONOPTIMIZE=1
+'''
+or edit  .bashrc to add this line:
+'''sh
+export PYTHONOPTIMIZE=1
+'''
