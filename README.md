@@ -31,11 +31,15 @@ This command is only available Model CR firmware updatedd after 2019.12. If you 
 
 
 ## Requirements
-- Ubuntu 20.04 
-- ROS2 galactic
+- Ubuntu 22.04 
+- ROS2 humble
 - [ros2_whill_interfaces](https://github.com/WHILL/ros2_whill_interfaces)
 
 ## Build
+please install before building
+```sh
+sudo apt install ros-humble-xacro
+```
 In your shell:
 ```sh
 cd ~/<your_ros2_ws>/src
