@@ -9,12 +9,19 @@ import xacro
 def generate_launch_description():
     ros2_whill_dir =get_package_share_directory('ros2_whill')
     xacro_path=os.path.join(ros2_whill_dir,'xacro','modelc.xacro')
+
+    decleare_param_file_cmd =DeclareLaunchArgument(
+        'params',
+        default_value=os.path.join(
+            ros2_whill_dir,'params','sample_param.yaml'),
+        description='Full path to the ros2 whill param file to use')
     
     whill_controller_node = Node(
         package='ros2_whill',
         executable='whill_modelc_controller',
         name='whill_modelc_controller',
-        output='screen')
+        output='screen',
+        parameters=[LaunchConfiguration('params')])
 
     doc =xacro.process_file(xacro_path)
     robot_desc=doc.toprettyxml(indent='  ')
@@ -39,24 +46,19 @@ def generate_launch_description():
         package='ros2_whill',
         executable='whill_modelc_publisher',
         name='whill_modelc_publisher',
-        output='screen')       
-    
-    decleare_param_file_cmd =DeclareLaunchArgument(
-        'params',
-        default_value=os.path.join(
-            ros2_whill_dir,'params','sample_param.yaml'),
-        description='Full path to the ros2 whill param file to use')
+        output='screen',
+        parameters=[LaunchConfiguration('params')])       
 
     # Create the launch description and populate
     ld = LaunchDescription()
+
+    # Add launch arguments to the launch description
+    ld.add_action(decleare_param_file_cmd)
 
     #add launch arguments to the launch description of node
     ld.add_action(whill_controller_node)
     ld.add_action(whill_pablisher_node)
     ld.add_action(robot_model_node)
     ld.add_action(jointstate_node)
-
-    # Add launch arguments to the launch description
-    ld.add_action(decleare_param_file_cmd)
 
     return ld

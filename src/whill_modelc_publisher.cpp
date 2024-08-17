@@ -161,17 +161,24 @@ int main(int argc, char **argv)
 
 	tf2_ros::TransformBroadcaster odom_broadcaster_(node);
 
-	double wheel_radius = 0.135;
+	double wheel_radius;
+	node->declare_parameter<double>("wheel_radius", 0.135);
 	node->get_parameter("wheel_radius", wheel_radius);
-	std::string serialport = "/dev/ttyUSB0";
+	std::string serialport;
+	node->declare_parameter<std::string>("serialport", "/dev/ttyUSB0");
 	node->get_parameter("serialport", serialport);
-	int send_interval = SEND_INTERVAL;
+	int send_interval;
+	node->declare_parameter<int>("send_interval", SEND_INTERVAL);
 	node->get_parameter("send_interval", send_interval);
+	bool publish_odom_tf;
+	node->declare_parameter<bool>("publish_odom_tf", true);
+	node->get_parameter("publish_odom_tf", publish_odom_tf);
 	RCLCPP_INFO(node->get_logger(), "=========================");
 	RCLCPP_INFO(node->get_logger(), "WHILL CR Publisher:");
 	RCLCPP_INFO(node->get_logger(), "    serialport: %s", serialport.c_str());
 	RCLCPP_INFO(node->get_logger(), "    wheel_radius: %f", wheel_radius);
 	RCLCPP_INFO(node->get_logger(), "    send_interval: %d", send_interval);
+	RCLCPP_INFO(node->get_logger(), "    publish_odom_tf: %s", publish_odom_tf ? "true" : "false");
 	RCLCPP_INFO(node->get_logger(), "=========================");
 
 	// Node Param
@@ -401,12 +408,15 @@ int main(int argc, char **argv)
 					odom_trans.child_frame_id = "base_link";
 					odom_broadcaster_.sendTransform(odom_trans);
 
-					odom_msg = odom.getROSOdometry();
-					odom_msg.header.stamp.sec = RCL_NS_TO_S(now);
-					odom_msg.header.stamp.nanosec = now - RCL_S_TO_NS(odom_msg.header.stamp.sec);
-					odom_msg.header.frame_id = "odom";
-					odom_msg.child_frame_id = "base_link";
-					whill_modelc_odom->publish(odom_msg);
+					if (publish_odom_tf)
+					{
+						odom_msg = odom.getROSOdometry();
+						odom_msg.header.stamp.sec = RCL_NS_TO_S(now);
+						odom_msg.header.stamp.nanosec = now - RCL_S_TO_NS(odom_msg.header.stamp.sec);
+						odom_msg.header.frame_id = "odom";
+						odom_msg.child_frame_id = "base_link";
+						whill_modelc_odom->publish(odom_msg);
+					}
 				}
 			}
 		}

@@ -197,8 +197,9 @@ int main(int argc, char **argv)
     // ROS setup
     rclcpp::init(argc, argv);
     node = rclcpp::Node::make_shared("whill_modelc_controller");
-    std::string serialport = "/dev/ttyUSB0";
-    node->get_parameter("serialport", serialport);
+	std::string serialport;
+	node->declare_parameter<std::string>("serialport", "/dev/ttyUSB0");
+	node->get_parameter("serialport", serialport);
     RCLCPP_INFO(node->get_logger(), "=========================");
     RCLCPP_INFO(node->get_logger(), "WHILL CR Controller:");
     RCLCPP_INFO(node->get_logger(), "    serialport: %s", serialport.c_str());
