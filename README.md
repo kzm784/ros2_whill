@@ -33,7 +33,7 @@ This command is only available Model CR firmware updatedd after 2019.12. If you 
 ## Requirements
 - Ubuntu 22.04 
 - ROS2 humble
-- [ros2_whill_interfaces](https://github.com/WHILL/ros2_whill_interfaces)
+- [ros2_whill_interfaces (crystal-devel)](https://github.com/WHILL/ros2_whill_interfaces)
 
 ## Build
 please install before building
@@ -43,8 +43,8 @@ sudo apt install ros-humble-xacro
 In your shell:
 ```sh
 cd ~/<your_ros2_ws>/src
-git clone https://github.com/WHILL/ros2_whill_interfaces.git
-git clone https://github.com/asa-naki/ros2_whill.git
+git clone -b crystal-devel https://github.com/WHILL/ros2_whill_interfaces.git
+git clone https://github.com/kzm784/ros2_whill.git
 cd ros2_whill
 git checkout humble-devel
 cd ~/<your_ros2_ws>
