@@ -173,12 +173,20 @@ int main(int argc, char **argv)
 	bool publish_odom_tf;
 	node->declare_parameter<bool>("publish_odom_tf", true);
 	node->get_parameter("publish_odom_tf", publish_odom_tf);
+	std::string odom_flame_id;
+	node->declare_parameter<std::string>("odom_flame_id", "odom");
+	node->get_parameter("odom_flame_id", odom_flame_id);
+	std::string base_flame_id;
+	node->declare_parameter("base_flame_id", "base_link");
+	node->get_parameter("base_flame_id", base_flame_id);
 	RCLCPP_INFO(node->get_logger(), "=========================");
 	RCLCPP_INFO(node->get_logger(), "WHILL CR Publisher:");
 	RCLCPP_INFO(node->get_logger(), "    serialport: %s", serialport.c_str());
 	RCLCPP_INFO(node->get_logger(), "    wheel_radius: %f", wheel_radius);
 	RCLCPP_INFO(node->get_logger(), "    send_interval: %d", send_interval);
 	RCLCPP_INFO(node->get_logger(), "    publish_odom_tf: %s", publish_odom_tf ? "true" : "false");
+	RCLCPP_INFO(node->get_logger(), "    odom_flame_id: %s", odom_flame_id.c_str());
+	RCLCPP_INFO(node->get_logger(), "    base_flame_id: %s", base_flame_id.c_str());
 	RCLCPP_INFO(node->get_logger(), "=========================");
 
 	// Node Param
@@ -403,18 +411,17 @@ int main(int argc, char **argv)
 					odom_msg = odom.getROSOdometry();
 					odom_msg.header.stamp.sec = RCL_NS_TO_S(now);
 					odom_msg.header.stamp.nanosec = now - RCL_S_TO_NS(odom_msg.header.stamp.sec);
+					odom_msg.header.frame_id = odom_flame_id;
+					odom_msg.child_frame_id = base_flame_id;
 
      				if (publish_odom_tf)
 					{
-						odom_msg.header.frame_id = "odom";
-						odom_msg.child_frame_id = "base_link";
-
 						geometry_msgs::msg::TransformStamped odom_trans;
 						odom_trans = odom.getROSTransformStamped();
 						odom_trans.header.stamp.sec = RCL_NS_TO_S(now);
 						odom_trans.header.stamp.nanosec = now - RCL_S_TO_NS(odom_trans.header.stamp.sec);
-						odom_trans.header.frame_id = "odom";
-						odom_trans.child_frame_id = "base_link";
+						odom_trans.header.frame_id = odom_flame_id;
+						odom_trans.child_frame_id = base_flame_id;
 						odom_broadcaster_.sendTransform(odom_trans);
      				}
 
