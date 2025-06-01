@@ -1,169 +1,142 @@
-# whill
+# ros2_whill
+<img src="https://user-images.githubusercontent.com/2618822/44189349-e4f39800-a15d-11e8-9261-79edac310e6a.png" width="100px">
 
-## About
+ROS2 package for WHILL Model CR
 
-The "whill" is a ROS2 package for WHILL Model CR2. <br>
+## ROS API
 
-<img width=22% title="WHILL Model CR2" src="https://github.com/WHILL/Model_CR_Technical_Support/assets/129816934/387a8aac-3808-4727-895d-9857059ee342">
-<img width=24% title="Wheeled Robot Base" src="https://github.com/WHILL/Model_CR_Technical_Support/assets/129816934/6a63ed45-9e0c-40ca-b71c-8dff614af141">
+### Subscribed Topics
 
-We also have [Model CR Series Technical Support](https://github.com/WHILL/Model_CR_Technical_Support) for current and potential Model CR series users. <br>
+#### /whill/controller/joy [(sensor_msgs/Joy)](http://docs.ros.org/api/sensor_msgs/html/msg/Joy.html)
+- Virtual WHILL joystick input. You can controll WHILL via this topic.
 
-**Attention:** <br>
-This package on `humble` branch only provides common functions for all models. <br>
-If you want to use features that are only available in WHILL Model CR, you will need to use `crystal-devel` branch.
+#### /whill/controller/cmd_vel[(geometry_msgs/Twist)](http://docs.ros.org/en/api/geometry_msgs/html/msg/Twist.html)
+cmc_vel input. You can controll WHILL via this topic.
+This command is only available Model CR firmware updatedd after 2019.12. If you want to use this cmd_vel, please update firmware of Model CR by contact to sales of WHILL.
+
+
+### Published Topics
+
+#### /whill/states/joy [(sensor_msgs/Joy)](http://docs.ros.org/api/sensor_msgs/html/msg/Joy.html)
+- Joystick status
+
+#### /whill/states/joint_state [(sensor_msgs/JointState)](http://docs.ros.org/api/sensor_msgs/html/msg/JointState.html)
+- Wheel rotate position(rad) and rotation velocity(rad/s)
+
+#### /whill/states/imu [(sensor_msgs/Imu)](http://docs.ros.org/api/sensor_msgs/html/msg/Imu.html)
+- IMU measured data.
+
+#### /whill/states/battery_state [(sensor_msgs/BatteryState)](http://docs.ros.org/api/sensor_msgs/html/msg/BatteryState.html)
+- Battery information
 
 
 ## Requirements
+- Ubuntu 22.04 
+- ROS2 humble
+- [ros2_whill_interfaces (crystal-devel)](https://github.com/WHILL/ros2_whill_interfaces)
 
-- Host device
-  - Linux OS: Ubuntu 22.04
-  - ROS2: Humble Hawksbill (humble)
-- Target device
-  - WHILL Model CR2 (Note that Model C2 does not have any serial ports)
-
-
-## Getting started
-
-1. Download projects
-2. Configure your serial port
-3. Build project
-4. Launch <br>
-  4-(A). With the bringup package <br>
-  4-(B). With 'run' command <br>
-
-
-### 1. Download projects
-
+## Build
+please install before building
+```sh
+sudo apt install ros-humble-xacro
+```
+In your shell:
 ```sh
 cd ~/<your_ros2_ws>/src
-git clone https://github.com/whill-labs/ros2_whill_interfaces.git
-git clone https://github.com/whill-labs/ros2_whill.git
-```
-
-
-### 2. Configure your serial port
-
-If your serial port is not `/dev/ttyUSB0`, please edit `port_name` in the following file:
+git clone -b crystal-devel https://github.com/WHILL/ros2_whill_interfaces.git
+git clone https://github.com/kzm784/ros2_whill.git
+cd ~/<your_ros2_ws>
+colcon build 
+source install/setup.bash
 
 ```
-~/<your_ros2_ws>/src/ros2_whill/whill_bringup/config/params.yaml
-```
 
 
-### 3. Build project
+
+
+## SerialPort Settings
+
+### Set
+
+Edit your `~/.bashrc` (bash) or `~/.zshrc` (zsh) to add this line:
 
 ```sh
-colcon build --packages-up-to whill
-. install/setup.bash
+export TTY_WHILL=/dev/[YOUR SERIAL PORT DEVICE]
+```
+Setting will be applied automatically from next shell starting or booting up.
+
+#### Apply setting immediately
+
+In your shell:
+
+(bash)
+```bash
+source ~/.bashrc
 ```
 
+(zsh)
+```zsh
+source ~/.zshrc
+```
 
-### 4. Launch
-
-#### (A) With the bringup package
-
+### Check the current setting
 ```sh
-ros2 launch whill_bringup whill_launch.py
+echo $TTY_WHILL  # -> Should be /dev/[YOUR SERIAL PORT DEVICE]
 ```
-
-
-#### (B) With 'run' command
-
+### Set serial port as an argument of the launch file
+Edit `serialport` value in the following parameter file and load the param file when you launch nodes.
 ```sh
-ros2 run whill_driver whill
+vim ~/<your_ros2_ws>/src/ros2_whill/params/sample_param.yaml
 ```
 
-**Note:** If your serial port is not `/dev/ttyUSB0`, for example `/dev/ttyUSB1`, please run the following command instead of the one above:
+## Launch nodes
+### Controller node
 ```sh
-ros2 run whill_driver whill --ros-args -p port_name:=/dev/ttyUSB1
+ros2 run ros2_whill whill_modelc_controller
 ```
-
-
-## ROS2 APIs
-
-### Publish
-
-| Topic name | Message type | Work |
-|:---|:---|:---|
-| /whill/states/model_cr2  | [whill_msgs/ModelCr2State](https://github.com/WHILL/ros2_whill_interfaces/blob/humble/whill_msgs/msg/ModelCr2State.msg)  | Notify WHILL states |
-
-
-### Subscription
-
-| Topic name | Message type | Work |
-|:---|:---|:---|
-| /whill/controller/joy | [sensor_msgs/Joy](http://docs.ros.org/api/sensor_msgs/html/msg/Joy.html) | Give WHILL a virtual joystick input |
-| /whill/controller/cmd_vel | [geometry_msgs/Twist](http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html) | Give WHILL a direct velocity input |
-
-
-### Service
-
-| Service name | Message type | Work |
-|:---|:---|:---|
-| /whill/set_power_srv | [whill_msgs/SetPower](https://github.com/WHILL/ros2_whill_interfaces/blob/humble/whill_msgs/srv/SetPower.srv) | Turn WHILL power on/off |
-| /whill/set_speed_profile_srv | [whill_msgs/SetSpeedProfile](https://github.com/WHILL/ros2_whill_interfaces/blob/humble/whill_msgs/srv/SetSpeedProfile.srv) | Change the speed profile of WHILL |
-| /whill/set_battery_saving_srv | [whill_msgs/SetBatterySaving](https://github.com/WHILL/ros2_whill_interfaces/blob/humble/whill_msgs/srv/SetBatterySaving.srv) | Configure the battery protection settings of WHILL |
-
-
-### *Command examples*
-
-##### Power on WHILL
-
+### Publisher node
 ```sh
-ros2 service call /whill/set_power_srv whill_msgs/SetPower '{p0: 1}'
+ros2 run ros2_whill whill_modelc_publisher
 ```
 
+### In the case of opening serial port failed
 
-##### Power off WHILL
+Edit
+```
+/lib/udev/rules.d/50-udev-default.rules
+```
 
+And add:
+```
+KERNEL=="ttyUSB[0-9]*", MODE="0666"
+```
+
+## Call services
+### Change Speed Profile
 ```sh
-ros2 service call /whill/set_power_srv whill_msgs/SetPower '{p0: 0}'
+ros2 service call /whill/set_speed_profile_srv ros2_whill_interfaces/SetSpeedProfile '{s1: 4, fm1: 15, fa1: 16, fd1: 64, rm1: 10, ra1: 16, rd1: 56, tm1: 10, ta1: 56, td1: 72}'
 ```
 
-
-##### Move WHILL forward with virtual joystick inputs
-
+### Power on
 ```sh
-ros2 topic pub -r 12 /whill/controller/joy sensor_msgs/Joy "{axes:[0, 0.25]}"
+ros2 service call /whill/set_power_srv ros2_whill_interfaces/SetPower '{p0: 1}'
 ```
 
-
-##### Spin WHILL counterclockwise with direct velocity inputs
-
+### Power off
 ```sh
-ros2 topic pub -r 12 /whill/controller/cmd_vel geometry_msgs/Twist '{linear: {x: 0}, angular: {z: 0.785}}'
+ros2 service call /whill/set_power_srv ros2_whill_interfaces/SetPower'{p0: 0}'
 ```
 
-
-##### Change the speed profile of the serial control (default values for s1=4)
-
-```sh
-ros2 service call /whill/set_speed_profile_srv whill_msgs/SetSpeedProfile '{s1: 4, fm1: 60, fa1: 32, fd1: 96, rm1: 20, ra1: 24, rd1: 64, tm1: 35, ta1: 56, td1: 72}'
-```
-
-
-##### Configure the battery protection settings (default values)
-
-```sh
-ros2 service call /whill/set_battery_saving_srv whill_msgs/SetBatterySaving '{l0: 19, b0: 1}'
-```
-
-
-## Packages
-
-| Package name | Explanation |
-|:---|:---|
-| whill | Meta package. Dependencies are described. |
-| [whill_bringup](./whill_bringup/README.md) | Launch package. You can start WHILL node with this package. |
-| [whill_description](./whill_description/README.md) | Description package. The URDF file is here. |
-| [whill_driver](./whill_driver/README.md) | Controller package. WHILL domains are implemented. |
-| [whill_examples](./whill_examples/README.md) | Examples. You can try demos with this package. |
-| [whill_msgs](https://github.com/WHILL/ros2_whill_interfaces) | Interfaces package. This package exists in a different repository. |
-
-
-## License
-
-Copyright (c) 2024 WHILL, Inc.
-
-This repository is licensed under the MIT License, see [LICENSE](./LICENSE) for details.
+### problem
+'''sh
+ros2 topic echo /whill/states/batttery_state
+'''
+don't show the topic infomation,
+please add 
+'''sh
+export PYTHONOPTIMIZE=1
+'''
+or edit  .bashrc to add this line:
+'''sh
+export PYTHONOPTIMIZE=1
+'''

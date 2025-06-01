@@ -1,0 +1,97 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-c3feb65bf124a157e8c4.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "ros2_whill",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ros2_whill__xacro_auto_generate::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ros2_whill__xacro_auto_generate-Debug-af3c382bfd1caeadb8cb.json",
+					"name" : "ros2_whill__xacro_auto_generate",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ros2_whill_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ros2_whill_uninstall-Debug-79d0ee5ce6c047fb49ac.json",
+					"name" : "ros2_whill_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-Debug-1c14ed2b37da5da0118f.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "whill_modelc_controller::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-whill_modelc_controller-Debug-3fe61883736f3ca7a554.json",
+					"name" : "whill_modelc_controller",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "whill_modelc_publisher::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-whill_modelc_publisher-Debug-6bb24c53bb4b718b2718.json",
+					"name" : "whill_modelc_publisher",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/keisoku/KUAMS/src/ros2_whill/build",
+		"source" : "/home/keisoku/KUAMS/src/ros2_whill"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}
