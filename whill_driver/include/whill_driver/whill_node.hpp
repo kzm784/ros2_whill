@@ -95,8 +95,6 @@ private:
   int publish_interval_ms;
   double joint_past_[2] = {0.0, 0.0};
   double rad_diff(double past, double now);
-
-  // ──────────────────────────────────────────────────────────────
 };
 
 }  // namespace whill_driver
