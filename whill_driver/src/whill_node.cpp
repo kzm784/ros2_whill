@@ -34,7 +34,7 @@ void WhillNode::Initialize()
   whill_ = std::make_shared<model_cr2::Whill>(port_name);
 
   declare_parameter("publish_interval_ms", kDefaulPpublishIntervalMs);
-  int publish_interval_ms = get_parameter("publish_interval_ms").as_int();
+  publish_interval_ms = get_parameter("publish_interval_ms").as_int();
   auto publish_duration = std::chrono::duration<double, std::milli>(publish_interval_ms);
 
   // publish
@@ -43,6 +43,16 @@ void WhillNode::Initialize()
   states_model_cr2_timer_ =
     this->create_wall_timer(publish_duration, std::bind(&WhillNode::OnStatesModelCr2Timer, this));
 
+  // odometry 
+  states_joint_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("/whill/joint_states", 10);
+  states_odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("whill/odom", 10);
+  tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
+  
+  odom.setParameters(
+    /*_wheel_radius=*/0.1325,
+    /*_wheel_tread=*/0.496
+  );
+  
   // subscription
   controller_joy_sub_ = this->create_subscription<sensor_msgs::msg::Joy>(
     "/whill/controller/joy", 10, std::bind(&WhillNode::OnControllerJoy, this, _1));
@@ -84,10 +94,73 @@ WhillNode::~WhillNode()
 
 void WhillNode::OnStatesModelCr2Timer()
 {
+  auto current_time = this->now();
+
   auto msg = std::make_shared<whill_msgs::msg::ModelCr2State>();
   if (whill_->ReceiveDataset1(msg) < 1) {return;}
   states_model_cr2_pub_->publish(*msg);
+
+  RCLCPP_INFO(this->get_logger(),
+    "WHILL state received left_motor_angle:  %f, right_motor_angle: %f",
+    msg->left_motor_angle,
+    msg->right_motor_angle
+  );
+
+  sensor_msgs::msg::JointState joint_state;
+  joint_state.header.stamp = current_time;
+
+  joint_state.name.resize(2);
+  joint_state.name[0] = "left_wheel_joint";
+  joint_state.name[1] = "right_wheel_joint";
+
+  joint_state.position.resize(2);
+  joint_state.position[0] = msg->left_motor_angle;
+  joint_state.position[1] = msg->right_motor_angle;
+
+  joint_state.velocity.resize(2);
+
+  double dt = publish_interval_ms * 0.001;
+  if (publish_interval_ms <= 0 || std::isnan(dt) || std::isinf(dt)) 
+  {
+    joint_state.velocity[0] = 0.0;
+    joint_state.velocity[1] = 0.0;
+  } 
+  else 
+  {
+    double diff_l = rad_diff(joint_past_[0], joint_state.position[0]);
+    double diff_r = rad_diff(joint_past_[1], joint_state.position[1]);
+    joint_state.velocity[0] = diff_l / dt;
+    joint_state.velocity[1] = diff_r / dt;
+  }
+
+  joint_past_[0] = joint_state.position[0];
+  joint_past_[1] = joint_state.position[1];
+
+  states_joint_pub_->publish(joint_state);
+
+  if (publish_interval_ms <= 0) 
+  {
+    odom.zeroVelocity();
+  } else 
+  {
+    odom.update(joint_state, dt);
+  }
+
+  // Odom msg
+  nav_msgs::msg::Odometry odom_msg = odom.getROSOdometry();
+  odom_msg.header.stamp = current_time;
+  odom_msg.header.frame_id = "odom";
+  odom_msg.child_frame_id = "base_link";
+  states_odom_pub_->publish(odom_msg);
+
+  // Odom TF
+  geometry_msgs::msg::TransformStamped odom_tf = odom.getROSTransformStamped();
+  odom_tf.header.stamp = current_time;
+  odom_tf.header.frame_id = "odom";
+  odom_tf.child_frame_id = "base_link";
+  tf_broadcaster_->sendTransform(odom_tf);
 }
+
 
 void WhillNode::OnControllerJoy(const sensor_msgs::msg::Joy::SharedPtr joy)
 {
@@ -290,6 +363,14 @@ bool WhillNode::IsOutside(uint8_t target, uint8_t end1, uint8_t end2)
   if (target > top) {return true;}
   if (target < bottom) {return true;}
   return false;
+}
+
+double WhillNode::rad_diff(double past, double now)
+{
+  double diff = now - past;
+  while (diff > M_PI)  diff -= 2.0 * M_PI;
+  while (diff < -M_PI) diff += 2.0 * M_PI;
+  return diff;
 }
 
 }  // namespace whill_driver

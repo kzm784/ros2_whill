@@ -18,6 +18,11 @@
 #include "geometry_msgs/msg/twist.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "sensor_msgs/msg/joy.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"    
+#include "nav_msgs/msg/odometry.hpp"              
+#include "geometry_msgs/msg/transform_stamped.hpp"
+#include "tf2_ros/transform_broadcaster.h"
+
 #include "whill_msgs/msg/model_cr2_state.hpp"
 #include "whill_msgs/srv/set_battery_saving.hpp"
 #include "whill_msgs/srv/set_battery_voltage_out.hpp"
@@ -25,6 +30,7 @@
 #include "whill_msgs/srv/set_speed_profile.hpp"
 
 #include "model_cr2/whill.hpp"
+#include "whill_driver/odom.h"
 
 namespace whill_driver
 {
@@ -80,6 +86,17 @@ private:
 
   int ConvertToWhillJoy(float raw_joy);
   bool IsOutside(uint8_t target, uint8_t end1, uint8_t end2);
+
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr states_joint_pub_;
+  rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr states_odom_pub_;
+  std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+  Odometry odom;
+
+  int publish_interval_ms;
+  double joint_past_[2] = {0.0, 0.0};
+  double rad_diff(double past, double now);
+
+  // ──────────────────────────────────────────────────────────────
 };
 
 }  // namespace whill_driver
