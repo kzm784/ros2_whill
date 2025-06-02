@@ -28,7 +28,7 @@ constexpr uint16_t kDefaulPpublishIntervalMs = 500;
 
 void WhillNode::Initialize()
 {
-  // load parameter                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             s
+  // load parameters
   declare_parameter("port_name", kDefaultPortName);
   std::string port_name = get_parameter("port_name").as_string();
   whill_ = std::make_shared<model_cr2::Whill>(port_name);
