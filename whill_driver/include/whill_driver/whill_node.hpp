@@ -92,7 +92,10 @@ private:
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
   Odometry odom;
 
-  int publish_interval_ms;
+  int publish_interval_ms_;
+  bool publish_odom_tf_;
+  std::string odom_frame_id_;
+  std::string base_frame_id_;
   double joint_past_[2] = {0.0, 0.0};
   double rad_diff(double past, double now);
 };

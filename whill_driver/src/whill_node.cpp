@@ -28,14 +28,32 @@ constexpr uint16_t kDefaulPpublishIntervalMs = 500;
 
 void WhillNode::Initialize()
 {
-  // load parameters
+  // load parameter                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             s
   declare_parameter("port_name", kDefaultPortName);
   std::string port_name = get_parameter("port_name").as_string();
   whill_ = std::make_shared<model_cr2::Whill>(port_name);
 
   declare_parameter("publish_interval_ms", kDefaulPpublishIntervalMs);
-  publish_interval_ms = get_parameter("publish_interval_ms").as_int();
-  auto publish_duration = std::chrono::duration<double, std::milli>(publish_interval_ms);
+  publish_interval_ms_ = get_parameter("publish_interval_ms").as_int();
+  auto publish_duration = std::chrono::duration<double, std::milli>(publish_interval_ms_);
+
+  declare_parameter("publish_odom_tf", true);
+  publish_odom_tf_ = get_parameter("publish_odom_tf").as_bool();
+
+  declare_parameter("odom_frame_id", "odom");
+  odom_frame_id_ = get_parameter("odom_frame_id").as_string();
+
+  declare_parameter("base_frame_id", "base_link");
+  base_frame_id_ = get_parameter("base_frame_id").as_string();
+
+  // logging parameters
+  RCLCPP_INFO(get_logger(), "=====================================");
+  RCLCPP_INFO(get_logger(), "port_name:           %s", port_name.c_str());
+  RCLCPP_INFO(get_logger(), "publish_interval_ms: %d", publish_interval_ms_);
+  RCLCPP_INFO(get_logger(), "publish_odom_tf:     %s", publish_odom_tf_ ? "true" : "false");
+  RCLCPP_INFO(get_logger(), "odom_frame_id:       %s", odom_frame_id_.c_str());
+  RCLCPP_INFO(get_logger(), "base_frame_id:       %s", base_frame_id_.c_str());
+  RCLCPP_INFO(get_logger(), "=====================================");
 
   // publish
   states_model_cr2_pub_ = this->create_publisher<whill_msgs::msg::ModelCr2State>(
@@ -72,7 +90,7 @@ void WhillNode::Initialize()
 
   // start sending WHILL State Dataset1
   whill_->SendStartSendingDataCommand(
-    publish_interval_ms, model_cr2::kDatasetNumber1,
+    publish_interval_ms_, model_cr2::kDatasetNumber1,
     model_cr2::kSpeedMode0);
 }
 
@@ -119,8 +137,8 @@ void WhillNode::OnStatesModelCr2Timer()
 
   joint_state.velocity.resize(2);
 
-  double dt = publish_interval_ms * 0.001;
-  if (publish_interval_ms <= 0 || std::isnan(dt) || std::isinf(dt)) 
+  double dt = publish_interval_ms_ * 0.001;
+  if (publish_interval_ms_ <= 0 || std::isnan(dt) || std::isinf(dt)) 
   {
     joint_state.velocity[0] = 0.0;
     joint_state.velocity[1] = 0.0;
@@ -138,7 +156,7 @@ void WhillNode::OnStatesModelCr2Timer()
 
   states_joint_pub_->publish(joint_state);
 
-  if (publish_interval_ms <= 0) 
+  if (publish_interval_ms_ <= 0) 
   {
     odom.zeroVelocity();
   } else 
@@ -149,18 +167,20 @@ void WhillNode::OnStatesModelCr2Timer()
   // Odom msg
   nav_msgs::msg::Odometry odom_msg = odom.getROSOdometry();
   odom_msg.header.stamp = current_time;
-  odom_msg.header.frame_id = "odom";
-  odom_msg.child_frame_id = "base_link";
+  odom_msg.header.frame_id = odom_frame_id_;
+  odom_msg.child_frame_id = base_frame_id_;
   states_odom_pub_->publish(odom_msg);
 
   // Odom TF
-  geometry_msgs::msg::TransformStamped odom_tf = odom.getROSTransformStamped();
-  odom_tf.header.stamp = current_time;
-  odom_tf.header.frame_id = "odom";
-  odom_tf.child_frame_id = "base_link";
-  tf_broadcaster_->sendTransform(odom_tf);
+  if (publish_odom_tf_)
+  {
+    geometry_msgs::msg::TransformStamped odom_tf = odom.getROSTransformStamped();
+    odom_tf.header.stamp = current_time;
+    odom_tf.header.frame_id = odom_frame_id_;
+    odom_tf.child_frame_id = base_frame_id_;
+    tf_broadcaster_->sendTransform(odom_tf);
+  }
 }
-
 
 void WhillNode::OnControllerJoy(const sensor_msgs::msg::Joy::SharedPtr joy)
 {
