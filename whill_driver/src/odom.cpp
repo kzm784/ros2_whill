@@ -15,7 +15,7 @@ Odometry::Odometry()
 {
     pose.x = pose.y = pose.theta = 0.0;
     velocity.x = velocity.y = velocity.theta = 0.0;
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Odometry constructor");
+    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Odometry constructor");
 }
 
 long double Odometry::confineRadian(long double rad)
@@ -44,8 +44,8 @@ void Odometry::update(sensor_msgs::msg::JointState joint_state, double dt)
         return;
     }
     
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Joint state velocity size: %zu", joint_state.velocity.size());
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Joint state position size: %zu", joint_state.position.size());
+    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Joint state velocity size: %zu", joint_state.velocity.size());
+    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Joint state position size: %zu", joint_state.position.size());
 
     double angle_vel_r = joint_state.velocity[1];
     double angle_vel_l = -joint_state.velocity[0];
@@ -63,19 +63,19 @@ void Odometry::update(sensor_msgs::msg::JointState joint_state, double dt)
     double delta_L = (vr + vl) / 2.0;
     double delta_theta = (vr - vl) / 0.496;
 
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "dt: %f", dt);
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "delta_L: %f, delta_theta: %f", delta_L, delta_theta);
+    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "dt: %f", dt);
+    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "delta_L: %f, delta_theta: %f", delta_L, delta_theta);
 
     pose.x += delta_L * dt * std::cos(pose.theta + delta_theta * dt / 2.0);
     pose.y += delta_L * dt * std::sin(pose.theta + delta_theta * dt / 2.0);
 
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pose x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
+    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pose x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
 
     velocity.x = delta_L;
     velocity.y = 0.0;
     velocity.theta = delta_theta;
 
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "velocity x: %f, y: %f, theta: %f", velocity.x, velocity.y, velocity.theta);
+    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "velocity x: %f, y: %f, theta: %f", velocity.x, velocity.y, velocity.theta);
 
     double max_delta_theta = 0.1;
     delta_theta = std::clamp(delta_theta, -max_delta_theta, max_delta_theta);
@@ -103,13 +103,13 @@ void Odometry::reset()
 
 void Odometry::set(Space2D pose)
 {
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "set pose x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
+    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "set pose x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
     this->pose = pose;
 }
 
 Odometry::Space2D Odometry::getOdom()
 {
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "getOdom pose x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
+    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "getOdom pose x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
     return pose;
 }
 
@@ -135,8 +135,8 @@ nav_msgs::msg::Odometry Odometry::getROSOdometry()
     odom.twist.twist.angular.y = 0.0;
     odom.twist.twist.angular.z = velocity.theta;
 
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pose x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "odom x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
+    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pose x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
+    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "odom x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
 
     return odom;
 }
