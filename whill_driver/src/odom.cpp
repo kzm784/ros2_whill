@@ -13,9 +13,8 @@ const float base_link_height = 0.1325;
 
 Odometry::Odometry()
 {
-    pose.x = pose.y = pose.theta = 0.0;
-    velocity.x = velocity.y = velocity.theta = 0.0;
-    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Odometry constructor");
+    pose_.x = pose_.y = pose_.theta = 0.0;
+    velocity_.x = velocity_.y = velocity_.theta = 0.0;
 }
 
 long double Odometry::confineRadian(long double rad)
@@ -33,64 +32,45 @@ long double Odometry::confineRadian(long double rad)
 
 void Odometry::setParameters(double _wheel_radius, double _wheel_tread)
 {
-    this->wheel_radius = _wheel_radius;
-    this->wheel_tread = _wheel_tread;
+    this->wheel_radius_ = _wheel_radius;
+    this->wheel_tread_ = _wheel_tread;
 }
 
 void Odometry::update(sensor_msgs::msg::JointState joint_state, double dt)
 {
-    if (dt <= 0.01 || std::isnan(dt) || std::isinf(dt))
+    if (dt <= 0.00 || std::isnan(dt) || std::isinf(dt))
     {
         return;
     }
-    
-    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Joint state velocity size: %zu", joint_state.velocity.size());
-    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Joint state position size: %zu", joint_state.position.size());
 
-    double angle_vel_r = joint_state.velocity[1];
-    double angle_vel_l = -joint_state.velocity[0];
+    double angle_vel_r = -joint_state.velocity[1];
+    double angle_vel_l = joint_state.velocity[0];
 
-    double filter_factor = 0.1;
-    static double smoothed_vr = 0.0;
-    static double smoothed_vl = 0.0;
+    long double vr = angle_vel_r * wheel_radius_;
+    long double vl = angle_vel_l * wheel_radius_;
 
-    smoothed_vr = (1 - filter_factor) * smoothed_vr + filter_factor * angle_vel_r;
-    smoothed_vl = (1 - filter_factor) * smoothed_vl + filter_factor * angle_vel_l;
+    long double delta_L  = (vr + vl) / 2.0;
+    long double delta_theta = (vr - vl) / (2.0 * wheel_tread_);
 
-    double vr = smoothed_vr * 0.1325;
-    double vl = smoothed_vl * 0.1325;
 
-    double delta_L = (vr + vl) / 2.0;
-    double delta_theta = (vr - vl) / 0.496;
+    pose_.x += delta_L * dt * cosl(pose_.theta + delta_theta * dt / 2.0);
+    pose_.y += delta_L * dt * sinl(pose_.theta + delta_theta * dt / 2.0);
 
-    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "dt: %f", dt);
-    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "delta_L: %f, delta_theta: %f", delta_L, delta_theta);
+    velocity_.x = delta_L;
+    velocity_.y = 0.0;
+    velocity_.theta = delta_theta;
 
-    pose.x += delta_L * dt * std::cos(pose.theta + delta_theta * dt / 2.0);
-    pose.y += delta_L * dt * std::sin(pose.theta + delta_theta * dt / 2.0);
-
-    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pose x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
-
-    velocity.x = delta_L;
-    velocity.y = 0.0;
-    velocity.theta = delta_theta;
-
-    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "velocity x: %f, y: %f, theta: %f", velocity.x, velocity.y, velocity.theta);
-
-    double max_delta_theta = 0.1;
-    delta_theta = std::clamp(delta_theta, -max_delta_theta, max_delta_theta);
-    
-    double theta = pose.theta + delta_theta * dt;
-    pose.theta = confineRadian(theta);
+    double theta = pose_.theta + delta_theta * dt;
+    pose_.theta = confineRadian(theta);
 
     return;
 }
 
 void Odometry::zeroVelocity()
 {
-    velocity.x = 0;
-    velocity.y = 0;
-    velocity.theta = 0;
+    velocity_.x = 0;
+    velocity_.y = 0;
+    velocity_.theta = 0;
     return;
 }
 
@@ -98,19 +78,17 @@ void Odometry::reset()
 {
     Space2D poseZero = {0, 0, 0};
     set(poseZero);
-    velocity = poseZero;
+    velocity_ = poseZero;
 }
 
 void Odometry::set(Space2D pose)
 {
-    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "set pose x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
-    this->pose = pose;
+    this->pose_ = pose;
 }
 
 Odometry::Space2D Odometry::getOdom()
 {
-    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "getOdom pose x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
-    return pose;
+    return pose_;
 }
 
 nav_msgs::msg::Odometry Odometry::getROSOdometry()
@@ -118,25 +96,22 @@ nav_msgs::msg::Odometry Odometry::getROSOdometry()
     nav_msgs::msg::Odometry odom;
 
     tf2::Quaternion odom_quat;
-    odom_quat.setRPY(0, 0, pose.theta);
+    odom_quat.setRPY(0, 0, pose_.theta);
 
-    odom.pose.pose.position.x = pose.x;
-    odom.pose.pose.position.y = pose.y;
+    odom.pose.pose.position.x = pose_.x;
+    odom.pose.pose.position.y = pose_.y;
     odom.pose.pose.position.z = base_link_height;
     odom.pose.pose.orientation.x = odom_quat.x();
     odom.pose.pose.orientation.y = odom_quat.y();
     odom.pose.pose.orientation.z = odom_quat.z();
     odom.pose.pose.orientation.w = odom_quat.w();
 
-    odom.twist.twist.linear.x = velocity.x;
-    odom.twist.twist.linear.y = velocity.y;
+    odom.twist.twist.linear.x = velocity_.x;
+    odom.twist.twist.linear.y = velocity_.y;
     odom.twist.twist.linear.z = 0.0;
     odom.twist.twist.angular.x = 0.0;
     odom.twist.twist.angular.y = 0.0;
-    odom.twist.twist.angular.z = velocity.theta;
-
-    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pose x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
-    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "odom x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
+    odom.twist.twist.angular.z = velocity_.theta;
 
     return odom;
 }
@@ -146,14 +121,14 @@ geometry_msgs::msg::TransformStamped Odometry::getROSTransformStamped()
     geometry_msgs::msg::TransformStamped odom_trans;
 
     tf2::Quaternion odom_quat;
-    odom_quat.setRPY(0, 0, pose.theta);
+    odom_quat.setRPY(0, 0, pose_.theta);
 
     odom_trans.header.stamp = rclcpp::Clock().now();
     odom_trans.header.frame_id = "odom";
     odom_trans.child_frame_id = "base_link";
 
-    odom_trans.transform.translation.x = pose.x;
-    odom_trans.transform.translation.y = pose.y;
+    odom_trans.transform.translation.x = pose_.x;
+    odom_trans.transform.translation.y = pose_.y;
     odom_trans.transform.translation.z = base_link_height;
     odom_trans.transform.rotation.x = odom_quat.x();
     odom_trans.transform.rotation.y = odom_quat.y();

@@ -67,8 +67,8 @@ void WhillNode::Initialize()
   tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
   
   odom.setParameters(
-    /*_wheel_radius=*/0.1325,
-    /*_wheel_tread=*/0.496
+    0.1325, // wheel_radius_
+    0.496   // wheel_tread_
   );
   
   // subscription
@@ -117,12 +117,6 @@ void WhillNode::OnStatesModelCr2Timer()
   auto msg = std::make_shared<whill_msgs::msg::ModelCr2State>();
   if (whill_->ReceiveDataset1(msg) < 1) {return;}
   states_model_cr2_pub_->publish(*msg);
-
-  RCLCPP_INFO(this->get_logger(),
-    "WHILL state received left_motor_angle:  %f, right_motor_angle: %f",
-    msg->left_motor_angle,
-    msg->right_motor_angle
-  );
 
   sensor_msgs::msg::JointState joint_state;
   joint_state.header.stamp = current_time;

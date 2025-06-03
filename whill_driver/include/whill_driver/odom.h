@@ -16,11 +16,11 @@ private:
         double theta;
     } Space2D;
 
-    double wheel_radius;
-    double wheel_tread;
+    double wheel_radius_;
+    double wheel_tread_;
 
-    Space2D pose;
-    Space2D velocity;
+    Space2D pose_;
+    Space2D velocity_;
 
 public:
     Odometry();
