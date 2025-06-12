@@ -66,7 +66,7 @@
     <joint name="left_wheel_joint" type="continuous">
         <parent link="base_floor" />
         <child link="left_wheel" />
-        <origin xyz="-0.3 0.260 0.015" rpy="-1.571 0 0" />
+        <origin xyz="-0.3 0.260 0.015" rpy="1.571 0 0" />
         <axis xyz="0 0 1" />
     </joint>
 
@@ -96,8 +96,8 @@
     <joint name="right_wheel_joint" type="continuous">
         <parent link="base_floor" />
         <child link="right_wheel" />
-        <origin xyz="-0.3 -0.260 0.015" rpy="1.57 0 0" />
-        <axis xyz="0 0 1" />
+        <origin xyz="-0.3 -0.260 0.015" rpy="-1.571 0 0" />
+        <axis xyz="0 0 -1" />
     </joint>
 
     <link name="left_front_wheel">
@@ -123,12 +123,11 @@
         </inertial>
     </link>
 
-    <!-- <joint name="left_front_wheel_joint" type="continuous"> -->
     <joint name="left_front_wheel_joint" type="fixed">
         <parent link="base_floor" />
         <child link="left_front_wheel" />
-        <origin xyz="0.330 -0.235 0" rpy="1.57 0 0" />
-        <axis xyz="0 0 1" />
+        <origin xyz="0.330 -0.235 0" rpy="-1.571 0 0" />
+        <axis xyz="0 0 -1" />
     </joint>
 
     <link name="right_front_wheel">
@@ -154,12 +153,11 @@
         </inertial>    
     </link>
 
-    <!-- <joint name="right_front_wheel_joint" type="continuous"> -->
-    <joint name="right_front_wheel_joint" type="fixed">        
+    <joint name="right_front_wheel_joint" type="fixed">
         <parent link="base_floor" />
         <child link="right_front_wheel"/>
         <origin xyz="0.330 0.235 0" rpy="1.571 0 0" />
-        <axis xyz="0 0 -1" />
+        <axis xyz="0 0 1" />
     </joint>
 
     <link name="seat">
