@@ -1,7 +1,8 @@
 whill:
   ros__parameters:
     port_name: "/dev/ttyUSB0"
-    publish_interval_ms: 100
+    whill_publish_interval_ms: 100
+    odom_publish_interval_ms: 30
     publish_odom_tf: false
     odom_frame_id: "odom"
     base_frame_id: "base_link"

@@ -52,7 +52,6 @@ void Odometry::update(sensor_msgs::msg::JointState joint_state, double dt)
     long double delta_L  = (vr + vl) / 2.0;
     long double delta_theta = (vr - vl) / (2.0 * wheel_tread_);
 
-
     pose_.x += delta_L * dt * cosl(pose_.theta + delta_theta * dt / 2.0);
     pose_.y += delta_L * dt * sinl(pose_.theta + delta_theta * dt / 2.0);
 
@@ -122,10 +121,6 @@ geometry_msgs::msg::TransformStamped Odometry::getROSTransformStamped()
 
     tf2::Quaternion odom_quat;
     odom_quat.setRPY(0, 0, pose_.theta);
-
-    odom_trans.header.stamp = rclcpp::Clock().now();
-    odom_trans.header.frame_id = "odom";
-    odom_trans.child_frame_id = "base_link";
 
     odom_trans.transform.translation.x = pose_.x;
     odom_trans.transform.translation.y = pose_.y;

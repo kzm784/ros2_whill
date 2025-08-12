@@ -92,7 +92,10 @@ private:
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
   Odometry odom;
 
-  int publish_interval_ms_;
+  int whill_publish_interval_ms_;
+  int odom_publish_interval_ms_;
+  rclcpp::Time last_update_time_;
+  rclcpp::Time last_odom_pub_time_;
   bool publish_odom_tf_;
   std::string odom_frame_id_;
   std::string base_frame_id_;

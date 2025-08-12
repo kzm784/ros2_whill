@@ -33,9 +33,12 @@ void WhillNode::Initialize()
   std::string port_name = get_parameter("port_name").as_string();
   whill_ = std::make_shared<model_cr2::Whill>(port_name);
 
-  declare_parameter("publish_interval_ms", kDefaulPpublishIntervalMs);
-  publish_interval_ms_ = get_parameter("publish_interval_ms").as_int();
-  auto publish_duration = std::chrono::duration<double, std::milli>(publish_interval_ms_);
+  declare_parameter("whill_publish_interval_ms", kDefaulPpublishIntervalMs);
+  whill_publish_interval_ms_ = get_parameter("whill_publish_interval_ms").as_int();
+  auto publish_duration = std::chrono::duration<double, std::milli>(whill_publish_interval_ms_);
+
+  declare_parameter("odom_publish_interval_ms", 30);
+  odom_publish_interval_ms_ = get_parameter("odom_publish_interval_ms").as_int();
 
   declare_parameter("publish_odom_tf", true);
   publish_odom_tf_ = get_parameter("publish_odom_tf").as_bool();
@@ -48,11 +51,12 @@ void WhillNode::Initialize()
 
   // logging parameters
   RCLCPP_INFO(get_logger(), "=====================================");
-  RCLCPP_INFO(get_logger(), "port_name:           %s", port_name.c_str());
-  RCLCPP_INFO(get_logger(), "publish_interval_ms: %d", publish_interval_ms_);
-  RCLCPP_INFO(get_logger(), "publish_odom_tf:     %s", publish_odom_tf_ ? "true" : "false");
-  RCLCPP_INFO(get_logger(), "odom_frame_id:       %s", odom_frame_id_.c_str());
-  RCLCPP_INFO(get_logger(), "base_frame_id:       %s", base_frame_id_.c_str());
+  RCLCPP_INFO(get_logger(), "port_name:                 %s", port_name.c_str());
+  RCLCPP_INFO(get_logger(), "whill_publish_interval_ms: %d", whill_publish_interval_ms_);
+  RCLCPP_INFO(get_logger(), "odom_publish_interval_ms:  %d", odom_publish_interval_ms_);
+  RCLCPP_INFO(get_logger(), "publish_odom_tf:           %s", publish_odom_tf_ ? "true" : "false");
+  RCLCPP_INFO(get_logger(), "odom_frame_id:             %s", odom_frame_id_.c_str());
+  RCLCPP_INFO(get_logger(), "base_frame_id:             %s", base_frame_id_.c_str());
   RCLCPP_INFO(get_logger(), "=====================================");
 
   // publish
@@ -65,6 +69,9 @@ void WhillNode::Initialize()
   states_joint_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("/whill/joint_states", 10);
   states_odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("whill/odom", 10);
   tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
+  
+  last_update_time_ = now();
+  last_odom_pub_time_ = now();
   
   odom.setParameters(
     0.1325, // wheel_radius_
@@ -90,7 +97,7 @@ void WhillNode::Initialize()
 
   // start sending WHILL State Dataset1
   whill_->SendStartSendingDataCommand(
-    publish_interval_ms_, model_cr2::kDatasetNumber1,
+    whill_publish_interval_ms_, model_cr2::kDatasetNumber1,
     model_cr2::kSpeedMode0);
 }
 
@@ -131,14 +138,16 @@ void WhillNode::OnStatesModelCr2Timer()
 
   joint_state.velocity.resize(2);
 
-  double dt = publish_interval_ms_ * 0.001;
-  if (publish_interval_ms_ <= 0 || std::isnan(dt) || std::isinf(dt)) 
-  {
+  double dt = (current_time - last_update_time_).seconds();
+  if (!(dt > 0.0) || !std::isfinite(dt)) {
+    dt = static_cast<double>(whill_publish_interval_ms_) * 1e-3;
+  }
+  last_update_time_ = current_time;
+
+  if (dt <= 0.0) {
     joint_state.velocity[0] = 0.0;
     joint_state.velocity[1] = 0.0;
-  } 
-  else 
-  {
+  } else {
     double diff_l = rad_diff(joint_past_[0], joint_state.position[0]);
     double diff_r = rad_diff(joint_past_[1], joint_state.position[1]);
     joint_state.velocity[0] = diff_l / dt;
@@ -148,15 +157,22 @@ void WhillNode::OnStatesModelCr2Timer()
   joint_past_[0] = joint_state.position[0];
   joint_past_[1] = joint_state.position[1];
 
-  states_joint_pub_->publish(joint_state);
-
-  if (publish_interval_ms_ <= 0) 
+  if (whill_publish_interval_ms_ <= 0) 
   {
     odom.zeroVelocity();
   } else 
   {
     odom.update(joint_state, dt);
   }
+
+  const int64_t interval_ns = static_cast<int64_t>(odom_publish_interval_ms_) * 1000000LL;
+  const bool should_publish = (current_time - last_odom_pub_time_).nanoseconds() >= interval_ns;
+  if (!should_publish) {
+    return;
+  }
+  last_odom_pub_time_ = current_time;
+
+  states_joint_pub_->publish(joint_state);
 
   // Odom msg
   nav_msgs::msg::Odometry odom_msg = odom.getROSOdometry();
